@@ -1,147 +1,102 @@
-function loadBookingHistory(){
-    let currentUser = localStorage.getItem("currentUser");
-    let bookingHistory = JSON.parse(localStorage.getItem("bookingHistory"));
-
-    if(bookingHistory && bookingHistory[currentUser] ){
-        let currentUserBookings = bookingHistory[currentUser];
-        
-         for(bookingIndex in currentUserBookings){
-             let bookingDetails = currentUserBookings[bookingIndex]
-             // AA2: Check if Status is booked
-             if(bookingDetails["Status"]=="Booked"){
-                 createBookingSummary(bookingDetails, bookingIndex);    // index is passed to create a cancel booking button     
-             }
-             // Else show elements in Cancelled booking section
-             else{
-                 // Call  createCancelledBookingSummary(bookingDetails, bookingIndex);
-                 createCancelledBookingSummary(bookingDetails, bookingIndex);
-             }
-        }
-    }
-    else{
-        let image = document.createElement("img");
-        image.setAttribute("class", "w-100")
-        image.src = "https://procodingclass.github.io/tynker-vr-gamers-assets/assets/banner.png";
-        
-        let link = document.createElement("a");
-        link.setAttribute("class", "btn btn-primary");
-        link.setAttribute("href", "slotBooking.html");
-        link.innerHTML = "Book Now";
-        
-        document.getElementById("eventText").appendChild(image);
-        document.getElementById("eventText").appendChild(link);
-    }
-}
+import socket
+import sys
+from threading import Thread
+import select
+from tkinter import *
+from tkinter import ttk
+from tkinter import filedialog
+import ftplib
+import os
+import ntpath
+import time
+from ftplib import FTP
 
 
-function createBookingSummary(bookingDetails){
-    
-    let container =document.createElement("div");
-    container.setAttribute("class", "booking-history-card text-light p-4");
-    
-    let summary = document.createElement("h5");
-    summary.innerHTML = "Booking Details";
-    container.appendChild(summary);
-    
-    let poster = document.createElement("img");
-    poster.setAttribute("src","https://procodingclass.github.io/tynker-vr-gamers-assets/assets/"+bookingDetails['Game']+".png");
-    container.appendChild(poster);
-        
-    for (key in bookingDetails) {
-        
-        let headingContainer = document.createElement("b");
-        headingContainer.innerHTML = key + " : " + bookingDetails[key] + "<br><br>";
-        
-        container.appendChild(headingContainer);
-    }
-    
-    let totalHeading = document.createElement("b");
-    totalHeading.innerHTML = "Total: "+ bookingDetails["Players"]+ "X tickets ($10)";
-    
-    let price = document.createElement("p");
-    price.setAttribute("class", "fs-3 text-end border-top");
-    price.innerHTML = "$"+ bookingDetails["Players"] * 10;
-    
-    // Create a button and save it in cancelButton variable
-    let cancelButton = document.createElement("button");
-    cancelButton.setAttribute("class","btn btn-danger");
-    
-    // Set bookingImdex as name of the cancelButton
-    cancelButton.setAttribute("name",bookingIndex);
-    
-    // Set onclick attribute to call cancleBooking(this) function
-    cancelButton.setAttribute("onclick", "cancelBooking(this)");
-    cancelButton.innerHTML = "Cancel Booking"; 
-    
-    container.appendChild(totalHeading);
-    container.appendChild(price);
-    
-    // Add cancelButton to container
-    container.appendChild(cancelButton);
-    
-    let col = document.createElement("div");
-    col.setAttribute("class", "col-md-4");
 
-    col.appendChild(container);    
-    document.getElementById("bookings").appendChild(col);
-    
-    
-}
+PORT  = 8010
+IP_ADDRESS = '127.0.0.1'
+SERVER = None
 
-// Create cancelBooking(element) function
-function cancelBooking(element){
-    
-    // Get currentUser ands bookingHistory
-    let currentUser = localStorage.getItem("currentUser");
-    let bookingHistory = JSON.parse(localStorage.getItem("bookingHistory"));
-    
-    // Set Status of booking at bookingInxed element.name to cancelled
-    bookingHistory[currentUser][element.name]["Status"]="Cancelled";
-    
-    // Update the bookingHistory in localStorage
-    localStorage.setItem("bookingHistory", JSON.stringify(bookingHistory));
-    
-    // Create alert to show "Cancelled Booking"
-    alert("Cancelled Booking")
-    // Redirect to bookingHistory.html
-    window.location.replace("bookingHistory.html");
-}
+name = None
+listbox =  None
+textarea= None
+labelchat = None
+text_message = None
+filePathLabel = None
 
-function createCancelledBookingSummary(bookingDetails){
-    
-    let container =document.createElement("div");
-    container.setAttribute("class", "booking-history-card text-light p-4");
-    
-    let summary = document.createElement("h5");
-    summary.innerHTML = "Booking Details";
-    container.appendChild(summary);
-    
-    let poster = document.createElement("img");
-    poster.setAttribute("src","https://procodingclass.github.io/tynker-vr-gamers-assets/assets/"+bookingDetails['Game']+".png");
-    container.appendChild(poster);
-        
-    for (key in bookingDetails) {
-        
-        let headingContainer = document.createElement("b");
-        headingContainer.innerHTML = key + " : " + bookingDetails[key] + "<br><br>";
-        
-        container.appendChild(headingContainer);
-    }
-    
-   
-    let totalHeading = document.createElement("b");
-    totalHeading.innerHTML = "Total: "+ bookingDetails["Players"]+ "X tickets ($10)";
-    
-    let price = document.createElement("p");
-    price.innerHTML = "$"+ bookingDetails["Players"] * 10;
-    
-    container.appendChild(totalHeading);
-    container.appendChild(price);
-    
-    let col = document.createElement("div");
-    col.setAttribute("class", "col-md-4");
+BUFFER_SIZE = 4096
 
-    col.appendChild(container);    
-    document.getElementById("cancelled-bookings").appendChild(col);
-    
-}
+def connectWithClient():
+    global SERVER
+    global listbox
+
+    text=listbox.get(ANCHOR)
+    list_item = text.split(":")
+    msg="connect "+list_item[1]
+    SERVER.send(msg.encode('ascii'))
+
+def disconnectWithClient():
+    global SERVER
+
+    text=listbox.get(ANCHOR)
+    list_item = text.split(":")
+    msg="disconnect "+list_item[1]
+    SERVER.send(msg.encode('ascii'))
+
+
+def quitSession():
+    global SERVER
+    SERVER.close()
+
+def getFileSize(file_name):
+    with open(file_name, "rb") as file:
+        chunk = file.read()
+        return len(chunk)
+
+def receiveMessage():
+    global SERVER
+    global name
+    global textarea
+    global BUFFER_SIZE
+
+    while True:
+        chunk = SERVER.recv(BUFFER_SIZE)
+        try:
+            if("tiul" in chunk.decode() and "1.0," not in chunk.decode()):
+                letter_list = chunk.decode().split(",")
+                listbox.insert(letter_list[0],letter_list[0]+":"+letter_list[1]+": "+letter_list[3]+" "+letter_list[5])
+                print(letter_list[0],letter_list[0]+":"+letter_list[1]+": "+letter_list[3]+" "+letter_list[5])
+            else:
+                textarea.insert(END,"\n"+chunk.decode('ascii'))
+                textarea.see("end")
+                print(chunk.decode('ascii'))
+        except:
+            pass
+
+
+
+def browseFiles():
+    pass
+
+
+def sendMessage():
+   pass
+
+
+
+
+
+
+
+def showClientsList():
+    global listbox
+    listbox.delete(0,"end")
+    SERVER.send("show list".encode('ascii'))
+
+
+def connectToServer():
+    global SERVER
+    global name
+
+    cname = name.get()
+    SERVER.send(cname.encode())
