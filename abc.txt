@@ -1,94 +1,147 @@
-function addProduct() {
-    
-  // Get the value from the element vendorName and store it into vendorName variable   
-  let vendorName = document.getElementById("vendorName").value;
-    
-  // Get the value from the element name and store it into productName variable   
-  let productName = document.getElementById("name").value;
-   
-  // Get the value from the element description and store it into productDescription variable      
-  let productDescription = document.getElementById("description").value;
-   
-  // Get the value from the element image and store it into productImg variable  
-  let productImg = document.getElementById("image").value;
-   
-  // Get the value from the element category and store it into productcategory variable  
-  let productCategory = document.getElementById("category").value;
-  
-  // Get the value from the element actualPrice and store it into productActualPrice variable  
-  let productActualPrice = document.getElementById("actualPrice").value;
-  
-  // Get the value from the element discount and store it into productDiscount variable  
-  let productDiscount = document.getElementById("discount").value;
-   
-  // Get the value from the element discountedPrice and store it into productDiscountedPrice variable  
-  let productDiscountedPrice = document.getElementById("discountedPrice").value;
-    
-  document.getElementById("error").innerHTML = "";
-  document.getElementById("vendorName").style.borderColor = "#ced4da";
-  document.getElementById("name").style.borderColor = "#ced4da";
-  document.getElementById("description").style.borderColor = "#ced4da";
-  document.getElementById("image").style.borderColor = "#ced4da";
-  document.getElementById("category").style.borderColor = "#ced4da";
-  document.getElementById("actualPrice").style.borderColor = "#ced4da";
-  document.getElementById("discount").style.borderColor = "#ced4da";  
-  document.getElementById("discountedPrice").style.borderColor = "#ced4da";    
-     
-    if (!vendorName) {
-    document.getElementById("error").innerHTML = "Please enter vendor name";
-    document.getElementById("vendorName").style.borderColor = "red";
-  }
-    else if (!productName) {
-    document.getElementById("error").innerHTML = "Please enter product name";
-    document.getElementById("name").style.borderColor = "red";
-  } else if (!productDescription) {
-    document.getElementById("error").innerHTML = "Please enter correct product details";
-    document.getElementById("description").style.borderColor = "red";
-  } else if (!productCategory) {
-    document.getElementById("error").innerHTML = "Please select valid product category.";
-    document.getElementById("category").style.borderColor = "red";
-  } else if (!productImg) {
-    document.getElementById("error").innerHTML = "Please enter an image url.";
-    document.getElementById("image").style.borderColor = "red";
-  } else if (!productActualPrice) {
-    document.getElementById("error").innerHTML = "Please enter price of the product.";
-    document.getElementById("actualPrice").style.borderColor = "red";
-  } else if (!productDiscount) {
-    document.getElementById("error").innerHTML = "Please enter product discount.";
-    document.getElementById("discount").style.borderColor = "red";
-  } 
-  // Show error if discount is greater than 100% 
-  else if (productDiscount>100) {
-    document.getElementById("error").innerHTML = "Give discount less than 100 %";
-    document.getElementById("discount").style.borderColor = "red";
-  } 
-  // Show error if ActualPrice is less than 1.
-  else if (productActualPrice< 1) {
-    document.getElementById("error").innerHTML = "Please enter price of the product.Price should be more than 0";
-    document.getElementById("actualPrice").style.borderColor = "red";
-  }
-  // if none of the above error conditions are met then print all the form information using console.log()
-  else {
-      console.log(vendorName)
-     console.log(productName)
-     console.log(productDescription)
-     console.log(productCategory)
-     console.log(productActualPrice)
-     console.log(productDiscount)
-     console.log(productDiscountedPrice)
-      
-  }
+function loadBookingHistory(){
+    let currentUser = localStorage.getItem("currentUser");
+    let bookingHistory = JSON.parse(localStorage.getItem("bookingHistory"));
+
+    if(bookingHistory && bookingHistory[currentUser] ){
+        let currentUserBookings = bookingHistory[currentUser];
+        
+         for(bookingIndex in currentUserBookings){
+             let bookingDetails = currentUserBookings[bookingIndex]
+             // AA2: Check if Status is booked
+             if(bookingDetails["Status"]=="Booked"){
+                 createBookingSummary(bookingDetails, bookingIndex);    // index is passed to create a cancel booking button     
+             }
+             // Else show elements in Cancelled booking section
+             else{
+                 // Call  createCancelledBookingSummary(bookingDetails, bookingIndex);
+                 createCancelledBookingSummary(bookingDetails, bookingIndex);
+             }
+        }
+    }
+    else{
+        let image = document.createElement("img");
+        image.setAttribute("class", "w-100")
+        image.src = "https://procodingclass.github.io/tynker-vr-gamers-assets/assets/banner.png";
+        
+        let link = document.createElement("a");
+        link.setAttribute("class", "btn btn-primary");
+        link.setAttribute("href", "slotBooking.html");
+        link.innerHTML = "Book Now";
+        
+        document.getElementById("eventText").appendChild(image);
+        document.getElementById("eventText").appendChild(link);
+    }
 }
 
 
+function createBookingSummary(bookingDetails){
+    
+    let container =document.createElement("div");
+    container.setAttribute("class", "booking-history-card text-light p-4");
+    
+    let summary = document.createElement("h5");
+    summary.innerHTML = "Booking Details";
+    container.appendChild(summary);
+    
+    let poster = document.createElement("img");
+    poster.setAttribute("src","https://procodingclass.github.io/tynker-vr-gamers-assets/assets/"+bookingDetails['Game']+".png");
+    container.appendChild(poster);
+        
+    for (key in bookingDetails) {
+        
+        let headingContainer = document.createElement("b");
+        headingContainer.innerHTML = key + " : " + bookingDetails[key] + "<br><br>";
+        
+        container.appendChild(headingContainer);
+    }
+    
+    let totalHeading = document.createElement("b");
+    totalHeading.innerHTML = "Total: "+ bookingDetails["Players"]+ "X tickets ($10)";
+    
+    let price = document.createElement("p");
+    price.setAttribute("class", "fs-3 text-end border-top");
+    price.innerHTML = "$"+ bookingDetails["Players"] * 10;
+    
+    // Create a button and save it in cancelButton variable
+    let cancelButton = document.createElement("button");
+    cancelButton.setAttribute("class","btn btn-danger");
+    
+    // Set bookingImdex as name of the cancelButton
+    cancelButton.setAttribute("name",bookingIndex);
+    
+    // Set onclick attribute to call cancleBooking(this) function
+    cancelButton.setAttribute("onclick", "cancelBooking(this)");
+    cancelButton.innerHTML = "Cancel Booking"; 
+    
+    container.appendChild(totalHeading);
+    container.appendChild(price);
+    
+    // Add cancelButton to container
+    container.appendChild(cancelButton);
+    
+    let col = document.createElement("div");
+    col.setAttribute("class", "col-md-4");
 
-function showFinalPrice() {
-  productActualPrice = document.getElementById("actualPrice").value;
-  productDiscount = document.getElementById("discount").value;
-
-  productDiscountedPrice =
-    productActualPrice - (productActualPrice * productDiscount) / 100;
-
-  document.getElementById("discountedPrice").value = productDiscountedPrice;
+    col.appendChild(container);    
+    document.getElementById("bookings").appendChild(col);
+    
+    
 }
 
+// Create cancelBooking(element) function
+function cancelBooking(element){
+    
+    // Get currentUser ands bookingHistory
+    let currentUser = localStorage.getItem("currentUser");
+    let bookingHistory = JSON.parse(localStorage.getItem("bookingHistory"));
+    
+    // Set Status of booking at bookingInxed element.name to cancelled
+    bookingHistory[currentUser][element.name]["Status"]="Cancelled";
+    
+    // Update the bookingHistory in localStorage
+    localStorage.setItem("bookingHistory", JSON.stringify(bookingHistory));
+    
+    // Create alert to show "Cancelled Booking"
+    alert("Cancelled Booking")
+    // Redirect to bookingHistory.html
+    window.location.replace("bookingHistory.html");
+}
+
+function createCancelledBookingSummary(bookingDetails){
+    
+    let container =document.createElement("div");
+    container.setAttribute("class", "booking-history-card text-light p-4");
+    
+    let summary = document.createElement("h5");
+    summary.innerHTML = "Booking Details";
+    container.appendChild(summary);
+    
+    let poster = document.createElement("img");
+    poster.setAttribute("src","https://procodingclass.github.io/tynker-vr-gamers-assets/assets/"+bookingDetails['Game']+".png");
+    container.appendChild(poster);
+        
+    for (key in bookingDetails) {
+        
+        let headingContainer = document.createElement("b");
+        headingContainer.innerHTML = key + " : " + bookingDetails[key] + "<br><br>";
+        
+        container.appendChild(headingContainer);
+    }
+    
+   
+    let totalHeading = document.createElement("b");
+    totalHeading.innerHTML = "Total: "+ bookingDetails["Players"]+ "X tickets ($10)";
+    
+    let price = document.createElement("p");
+    price.innerHTML = "$"+ bookingDetails["Players"] * 10;
+    
+    container.appendChild(totalHeading);
+    container.appendChild(price);
+    
+    let col = document.createElement("div");
+    col.setAttribute("class", "col-md-4");
+
+    col.appendChild(container);    
+    document.getElementById("cancelled-bookings").appendChild(col);
+    
+}
