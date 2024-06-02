@@ -1,16 +1,55 @@
-app.post("/send-mail", (req, res) => {
-    const to = req.body.to;
-    const url = req.body.url;
-    const mailData = {
-        from: "apoorv.goyal@whitehatjr.com",
-        to: to,
-        subject: "Join the video chat with me!",
-        html: `<p>Hey there,</p><p>Come and join me for a video chat here - ${url}</p>`
-    };
-    transporter.sendMail(mailData, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        res.status(200).send({ message: "Invitation sent!", message_id: info.messageId });
-    });
-})
+void reconnect() {
+  while (!client.connected()) {
+    String clientId = "ESP32Client-";
+    clientId += String(random(0xffff), HEX);
+
+    if (client.connect(clientId.c_str())) {
+      Serial.println("Connected to MQTT broker");
+      // Subscribe to the specified MQTT topic
+      client.subscribe("/ThinkIOT/Subscribe");
+    } else {
+      // Wait for a while before retrying the connection
+      delay(5000);
+    }
+  }
+}
+
+void setup() {
+  // Initialize the serial connection
+  Serial.begin(115200);
+
+  // Set up the WiFi connection
+  setup_wifi();
+
+  // Configure the MQTT client and callback function
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+
+  // Initialize the DHT sensor
+  dht.setup(DHT_PIN, DHTesp::DHT22);
+}
+
+void loop() {
+  // If not connected to the MQTT broker, attempt to reconnect
+  if (!client.connected()) {
+    reconnect();
+  }
+
+  // Process any incoming MQTT messages
+  client.loop();
+
+  // Publish sensor data at regular intervals
+  unsigned long now = millis();
+  if (now - lastMsg > 2000) {
+    lastMsg = now;
+    TempAndHumidity data = dht.getTempAndHumidity();
+
+    // Publish temperature data to the MQTT topic
+    String tempStr = String(data.temperature, 2);
+    client.publish("/Thinkitive/temp", tempStr.c_str());
+
+    // Publish humidity data to the MQTT topic
+    String humStr = String(data.humidity, 1);
+    client.publish("/Thinkitive/hum", humStr.c_str());
+  }
+}
