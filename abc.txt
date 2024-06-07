@@ -1,55 +1,48 @@
-void reconnect() {
-  while (!client.connected()) {
-    String clientId = "ESP32Client-";
-    clientId += String(random(0xffff), HEX);
+#import Tokenizer from tensorflow
 
-    if (client.connect(clientId.c_str())) {
-      Serial.println("Connected to MQTT broker");
-      // Subscribe to the specified MQTT topic
-      client.subscribe("/ThinkIOT/Subscribe");
-    } else {
-      // Wait for a while before retrying the connection
-      delay(5000);
-    }
-  }
-}
+import tensorflow as tf
 
-void setup() {
-  // Initialize the serial connection
-  Serial.begin(115200);
+from tensorflow.keras.preprocessing.text import Tokenizer
 
-  // Set up the WiFi connection
-  setup_wifi();
+#Define parameters for Tokenizer
 
-  // Configure the MQTT client and callback function
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
+vocab_size = 10000
+embedding_dim = 16
+oov_tok = "<OOV>"
+training_size = 20000
 
-  // Initialize the DHT sensor
-  dht.setup(DHT_PIN, DHTesp::DHT22);
-}
+tokenizer = Tokenizer(num_words=vocab_size, oov_token=oov_tok)
+tokenizer.fit_on_texts(training_sentences)
 
-void loop() {
-  // If not connected to the MQTT broker, attempt to reconnect
-  if (!client.connected()) {
-    reconnect();
-  }
+#Create a word_index dictionary
 
-  // Process any incoming MQTT messages
-  client.loop();
+word_index = tokenizer.word_index
 
-  // Publish sensor data at regular intervals
-  unsigned long now = millis();
-  if (now - lastMsg > 2000) {
-    lastMsg = now;
-    TempAndHumidity data = dht.getTempAndHumidity();
+#Check numeral value assigned to a word
 
-    // Publish temperature data to the MQTT topic
-    String tempStr = String(data.temperature, 2);
-    client.publish("/Thinkitive/temp", tempStr.c_str());
+word_index["the"]
 
-    // Publish humidity data to the MQTT topic
-    String humStr = String(data.humidity, 1);
-    client.publish("/Thinkitive/hum", humStr.c_str());
-  }
-}
+
+
+
+training_sequences = tokenizer.texts_to_sequences(training_sentences)
+
+print(training_sequences[0])
+print(training_sequences[1])
+print(training_sequences[2])
+
+
+
+#Define parameters for pad_sequences
+
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+padding_type='post'
+max_length = 100
+trunc_type='post'
+
+
+training_padded = pad_sequences(training_sequences, maxlen=max_length, 
+                                padding=padding_type, truncating=trunc_type)
+
+training_padded
