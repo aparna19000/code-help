@@ -30,3 +30,6 @@ public class HelloWorld {
      System.out.println(obj.getName());
     }
 }
+
+so basically we are binidng the data with the methods, so we are putting together data and methods, thats 
+    encapsulation
