@@ -34,3 +34,67 @@ public class Main {
         myDog.bark(); // Method from the derived class
     }
 }
+
+
+
+
+--------------------------------------------------------------------------------
+    // Base class
+class Vehicle {
+    // Method in the base class
+    void start() {
+        System.out.println("Vehicle is starting.");
+    }
+}
+
+// Derived class inheriting from the base class
+class Car extends Vehicle {
+    // Method in the derived class
+    void drive() {
+        System.out.println("Car is driving.");
+    }
+}
+
+// Main class to demonstrate inheritance
+public class Main {
+    public static void main(String[] args) {
+        // Create an object of the derived class
+        Car myCar = new Car();
+        
+        // Call methods from both the base and derived classes
+        myCar.start();  // Method from the base class
+        myCar.drive();  // Method from the derived class
+    }
+}
+
+
+-------------------------------------------------------------------------
+
+// Base class
+class Person {
+    // Method in the base class
+    void walk() {
+        System.out.println("Person is walking.");
+    }
+}
+
+// Derived class inheriting from the base class
+class Employee extends Person {
+    // Method in the derived class
+    void work() {
+        System.out.println("Employee is working.");
+    }
+}
+
+// Main class to demonstrate inheritance
+public class Main {
+    public static void main(String[] args) {
+        // Create an object of the derived class
+        Employee myEmployee = new Employee();
+        
+        // Call methods from both the base and derived classes
+        myEmployee.walk();  // Method from the base class
+        myEmployee.work();  // Method from the derived class
+    }
+}
+    
