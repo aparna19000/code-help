@@ -1,0 +1,74 @@
+The term "FTC Robot Controller" is related to the FIRST Tech Challenge (FTC), a robotics competition for students in grades 7-12. In this competition, teams design, build, and program robots to compete in a game that changes each season.
+
+The FTC Robot Controller is the software component that runs on an Android device connected to the robot. It is part of the FTC Robotics system and is responsible for controlling the robot's hardware components, such as motors, servos, and sensors, based on the code written by the team.
+
+Key Components of the FTC Robot Controller:
+Android Device: The Robot Controller runs on an Android smartphone or tablet connected to the robot's control system.
+Control Hub or Expansion Hub: These are the hardware units that interface with the Android device and allow it to communicate with the robot's components.
+FTC SDK (Software Development Kit): The SDK is a set of tools and libraries provided by FIRST that allows teams to program their robots in Java or Blocks (a graphical programming language). The SDK includes templates, examples, and libraries to make it easier to control the robot's hardware.
+Driver Station: A separate Android device that communicates wirelessly with the Robot Controller. The Driver Station provides the user interface for controlling the robot during matches.
+Programming the FTC Robot Controller:
+Java: Teams can write their robot code in Java using the FTC SDK. The code controls the robot's behavior, such as driving, operating arms, and responding to sensor inputs.
+Blocks: For those who prefer a graphical programming approach, the FTC SDK also supports programming using Blocks, which is a drag-and-drop interface.
+The FTC Robot Controller is a crucial part of the FTC competition, enabling teams to bring their robots to life and compete in various challenges.
+
+If you have any specific questions about programming or using the FTC Robot Controller, feel free to ask!
+
+
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Basic: Drive Forward", group="Linear Opmode")
+//@Disabled
+public class BasicDriveForward extends LinearOpMode {
+
+    // Declare OpMode members
+    private DcMotor leftDrive = null;
+    private DcMotor rightDrive = null;
+
+    @Override
+    public void runOpMode() {
+
+        // Initialize the hardware variables. The string used here must match the name assigned during the robot configuration
+        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+
+        // Set the direction of the motors so that positive power drives forward
+        leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if necessary
+        rightDrive.setDirection(DcMotor.Direction.REVERSE); // Set to FORWARD if necessary
+
+        // Wait for the game to start (driver presses PLAY)
+        waitForStart();
+
+        // Drive forward for 3 seconds at half speed
+        leftDrive.setPower(0.5);
+        rightDrive.setPower(0.5);
+
+        sleep(3000); // Pause for 3 seconds
+
+        // Stop the robot
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
+
+        // Optional: Add a telemetry message to signal the end of the op mode
+        telemetry.addData("Status", "Robot stopped");
+        telemetry.update();
+    }
+}
+
+
+Explanation:
+DcMotor leftDrive and rightDrive: These are the motors controlling the left and right wheels of the robot.
+hardwareMap.get(DcMotor.class, "left_drive"): This line retrieves the motor from the hardware map using the name "left_drive". The name must match the name configured on the Robot Controller app.
+setDirection: This sets the direction of the motors to ensure both wheels drive forward when given positive power.
+setPower(0.5): This sets the power level of the motors to 50%, making the robot drive forward at half speed.
+sleep(3000): This makes the robot drive forward for 3 seconds.
+setPower(0): This stops the robot.
+Usage:
+Copy this code into a new Java class in your FTC project.
+Make sure the motor names ("left_drive" and "right_drive") match those configured in your Robot Controller app.
+Deploy the code to your Robot Controller Android device.
+Run the OpMode from the Driver Station.
+This is a basic example to get you started. You can expand on this by adding more features, such as turning, using sensors, or responding to gamepad inputs.
